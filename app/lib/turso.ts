@@ -104,6 +104,20 @@ export async function deleteCustomShape(id: string): Promise<boolean> {
   }
 }
 
+export async function deleteAllCustomShapes(): Promise<number> {
+  if (!turso) {
+    throw new Error('Turso client not configured');
+  }
+  
+  try {
+    const result = await turso.execute('DELETE FROM custom_shapes');
+    return result.rowsAffected || 0;
+  } catch (error) {
+    console.error('Failed to delete all custom shapes:', error);
+    throw new Error('Failed to delete shapes from database');
+  }
+}
+
 export async function getShapesByCategory(): Promise<Record<string, CustomShape[]>> {
   const shapes = await getAllCustomShapes();
   const categories: Record<string, CustomShape[]> = {};

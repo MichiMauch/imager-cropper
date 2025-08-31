@@ -1,8 +1,11 @@
 @import "tailwindcss";
 
+/* Revolutionary 2025 Design System */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #000000;
+  --foreground: #ffffff;
+  --subtle-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  --subtle-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
 }
 
 @theme inline {
@@ -12,15 +15,224 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Progressive Blur & Morphism Effects */
+.morphism-blur {
+  backdrop-filter: blur(20px) saturate(180%);
+  background: rgba(17, 25, 40, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.125);
+}
+
+.progressive-blur-light {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  backdrop-filter: blur(8px) saturate(150%);
+}
+
+.progressive-blur-dark {
+  background: linear-gradient(135deg, 
+    rgba(0, 0, 0, 0.4) 0%,
+    rgba(0, 0, 0, 0.2) 50%,
+    rgba(0, 0, 0, 0.1) 100%
+  );
+  backdrop-filter: blur(12px) saturate(120%);
+}
+
+.glass-morphism {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.subtle-shadow {
+  box-shadow: var(--subtle-shadow);
+}
+
+.subtle-shadow-lg {
+  box-shadow: var(--subtle-shadow-lg);
+}
+
+
+/* Active Section Glow Effects */
+.active-shadow-slate {
+  box-shadow: 
+    0 0 0 1px rgba(100, 116, 139, 0.2),
+    0 10px 25px rgba(100, 116, 139, 0.15),
+    0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.active-shadow-indigo {
+  box-shadow: 
+    0 0 0 1px rgba(99, 102, 241, 0.2),
+    0 10px 25px rgba(99, 102, 241, 0.15),
+    0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.active-shadow-violet {
+  box-shadow: 
+    0 0 0 1px rgba(139, 92, 246, 0.2),
+    0 10px 25px rgba(139, 92, 246, 0.15),
+    0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.active-shadow-teal {
+  box-shadow: 
+    0 0 0 1px rgba(20, 184, 166, 0.2),
+    0 10px 25px rgba(20, 184, 166, 0.15),
+    0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.active-shadow-blue {
+  box-shadow: 
+    0 0 0 1px rgba(59, 130, 246, 0.2),
+    0 10px 25px rgba(59, 130, 246, 0.15),
+    0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.holographic-overlay {
+  background: linear-gradient(45deg, 
+    transparent 30%, 
+    rgba(255, 255, 255, 0.1) 50%, 
+    transparent 70%
+  );
+  background-size: 200% 200%;
+  animation: holographic 3s ease-in-out infinite;
+}
+
+/* Revolutionary Animations */
+.animate-fadeIn {
+  animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-morphing {
+  animation: morphing 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-floating {
+  animation: floating 6s ease-in-out infinite;
+}
+
+
+.animate-rotate-y {
+  animation: rotateY 8s linear infinite;
+}
+
+/* Keyframes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes morphing {
+  0%, 100% {
+    border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    border-radius: 58% 42% 75% 25% / 76% 46% 54% 24%;
+    transform: scale(1.1) rotate(90deg);
+  }
+  50% {
+    border-radius: 50% 50% 33% 67% / 55% 27% 73% 45%;
+    transform: scale(0.9) rotate(180deg);
+  }
+  75% {
+    border-radius: 33% 67% 58% 42% / 63% 68% 32% 37%;
+    transform: scale(1.05) rotate(270deg);
+  }
+}
+
+@keyframes floating {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+
+@keyframes holographic {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes rotateY {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(360deg);
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #475569, #64748b);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #64748b, #94a3b8);
+  background-clip: content-box;
+}
+
+/* Selection Styling */
+::selection {
+  background: rgba(99, 102, 241, 0.3);
+  color: white;
+}
+
+::-moz-selection {
+  background: rgba(99, 102, 241, 0.3);
+  color: white;
 }

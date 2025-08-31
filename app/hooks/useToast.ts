@@ -31,6 +31,21 @@ export function useToast() {
     return addToast({ type: 'info', title, message, duration });
   }, [addToast]);
 
+  const warning = useCallback((title: string, message: string, duration?: number) => {
+    return addToast({ type: 'warning', title, message, duration });
+  }, [addToast]);
+
+  const confirm = useCallback((title: string, message: string, onConfirm: () => void, onCancel?: () => void, duration?: number) => {
+    return addToast({ 
+      type: 'confirm', 
+      title, 
+      message, 
+      duration: duration || 10000, // Longer duration for confirmation toasts
+      onConfirm,
+      onCancel
+    });
+  }, [addToast]);
+
   const clearAll = useCallback(() => {
     setToasts([]);
   }, []);
@@ -42,6 +57,8 @@ export function useToast() {
     success,
     error,
     info,
+    warning,
+    confirm,
     clearAll
   };
 }

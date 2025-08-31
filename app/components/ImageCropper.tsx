@@ -10,9 +10,10 @@ interface ImageCropperProps {
   customPoints?: Point[];
   customCanvasSize?: { width: number; height: number };
   onCropComplete: (canvas: HTMLCanvasElement) => void;
+  onBackToSelection?: () => void;
 }
 
-export default function ImageCropper({ imageFile, selectedShape, customPoints, customCanvasSize, onCropComplete }: ImageCropperProps) {
+export default function ImageCropper({ imageFile, selectedShape, customPoints, customCanvasSize, onCropComplete, onBackToSelection }: ImageCropperProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,33 +49,6 @@ export default function ImageCropper({ imageFile, selectedShape, customPoints, c
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let canvasWidth, canvasHeight;
-    
-    // For custom shapes, use original image proportions; for others, use square
-    if (selectedShape.isCustom && customPoints && customCanvasSize) {
-      // Calculate preview size maintaining original aspect ratio
-      const maxPreviewSize = 400;
-      const imageAspect = originalImage.width / originalImage.height;
-      
-      if (imageAspect > 1) {
-        canvasWidth = Math.min(maxPreviewSize, originalImage.width);
-        canvasHeight = canvasWidth / imageAspect;
-      } else {
-        canvasHeight = Math.min(maxPreviewSize, originalImage.height);
-        canvasWidth = canvasHeight * imageAspect;
-      }
-    } else {
-      // For predefined shapes, use square preview
-      canvasWidth = canvasHeight = 300;
-    }
-
-    // Set canvas size
-    canvas.width = canvasWidth;
-    canvas.height = canvasHeight;
-
-    // Clear canvas
-    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-
     let shapeToUse = selectedShape;
     
     // Create custom shape for preview if we have custom points
@@ -82,51 +56,75 @@ export default function ImageCropper({ imageFile, selectedShape, customPoints, c
       shapeToUse = createCustomShape(customPoints, customCanvasSize.width, customCanvasSize.height);
     }
 
-    // Draw shape preview
-    ctx.save();
+    // Use same logic as cropImageWithShape for consistent preview
+    const outputSize = 512;
+    const useOriginalSize = selectedShape.isCustom;
     
-    // Draw the shape path
-    shapeToUse.drawPath(ctx, canvasWidth, canvasHeight);
+    // Set canvas size - match exactly what cropImageWithShape does
+    const canvasWidth = useOriginalSize ? originalImage.width : outputSize;
+    const canvasHeight = useOriginalSize ? originalImage.height : outputSize;
     
-    // Clip to the shape
-    ctx.clip();
+    // But for display, scale down if too large
+    const maxDisplayWidth = 800;
+    const maxDisplayHeight = 600;
+    let displayWidth = canvasWidth;
+    let displayHeight = canvasHeight;
     
-    if (selectedShape.isCustom) {
-      // For custom shapes, draw image at scaled size maintaining aspect ratio
-      const scale = Math.min(canvasWidth / originalImage.width, canvasHeight / originalImage.height);
-      const scaledWidth = originalImage.width * scale;
-      const scaledHeight = originalImage.height * scale;
-      const offsetX = (canvasWidth - scaledWidth) / 2;
-      const offsetY = (canvasHeight - scaledHeight) / 2;
-      
-      ctx.drawImage(originalImage, offsetX, offsetY, scaledWidth, scaledHeight);
+    if (displayWidth > maxDisplayWidth || displayHeight > maxDisplayHeight) {
+      const scale = Math.min(maxDisplayWidth / displayWidth, maxDisplayHeight / displayHeight);
+      displayWidth = Math.round(displayWidth * scale);
+      displayHeight = Math.round(displayHeight * scale);
+    }
+    
+    canvas.width = displayWidth;
+    canvas.height = displayHeight;
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, displayWidth, displayHeight);
+    
+    // Scale context if needed
+    if (displayWidth !== canvasWidth || displayHeight !== canvasHeight) {
+      ctx.scale(displayWidth / canvasWidth, displayHeight / canvasHeight);
+    }
+    
+    // Now draw exactly like cropImageWithShape does
+    if (useOriginalSize) {
+      // For custom shapes with original size: draw image at 1:1 scale
+      ctx.drawImage(originalImage, 0, 0, originalImage.width, originalImage.height);
     } else {
-      // For predefined shapes, use the existing scaling logic
+      // For predefined shapes: scale image to fit square canvas
       const imageAspect = originalImage.width / originalImage.height;
+      const canvasAspect = 1; // Square canvas
+      
       let drawWidth, drawHeight, offsetX, offsetY;
       
-      if (imageAspect > 1) {
-        drawHeight = canvasHeight;
-        drawWidth = canvasHeight * imageAspect;
-        offsetX = -(drawWidth - canvasWidth) / 2;
+      if (imageAspect > canvasAspect) {
+        // Image is wider - fit height and crop width
+        drawHeight = outputSize;
+        drawWidth = outputSize * imageAspect;
+        offsetX = -(drawWidth - outputSize) / 2;
         offsetY = 0;
       } else {
-        drawWidth = canvasWidth;
-        drawHeight = canvasWidth / imageAspect;
+        // Image is taller - fit width and crop height
+        drawWidth = outputSize;
+        drawHeight = outputSize / imageAspect;
         offsetX = 0;
-        offsetY = -(drawHeight - canvasHeight) / 2;
+        offsetY = -(drawHeight - outputSize) / 2;
       }
       
+      // Draw the image
       ctx.drawImage(originalImage, offsetX, offsetY, drawWidth, drawHeight);
     }
     
-    ctx.restore();
-
-    // Draw shape outline for clarity
-    ctx.strokeStyle = '#3B82F6';
-    ctx.lineWidth = 2;
+    // Now cut out the shape area (make it transparent)
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-out';
+    
+    // Draw the shape path to cut it out
     shapeToUse.drawPath(ctx, canvasWidth, canvasHeight);
-    ctx.stroke();
+    ctx.fill();
+    
+    ctx.restore();
 
   }, [originalImage, selectedShape, customPoints, customCanvasSize]);
 
@@ -160,18 +158,17 @@ export default function ImageCropper({ imageFile, selectedShape, customPoints, c
 
   return (
     <div className="w-full flex flex-col items-center space-y-4">
-      <h3 className="text-lg font-semibold text-gray-800">Preview & Crop</h3>
+      <h3 className="text-lg font-semibold text-white">Preview & Crop</h3>
       
-      <div className="relative">
+      <div className="relative max-w-full overflow-auto border border-gray-700/50 rounded-xl p-6 bg-gray-800/50 backdrop-blur-sm">
         <canvas
           ref={canvasRef}
-          className="border border-gray-300 rounded-lg shadow-sm"
-          width={300}
-          height={300}
+          className="max-w-full h-auto"
+          style={{ display: 'block' }}
         />
         {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 rounded-lg">
-            <div className="text-gray-600">Loading...</div>
+          <div className="absolute inset-0 flex items-center justify-center bg-black/75 rounded-xl backdrop-blur-sm">
+            <div className="text-white">Loading...</div>
           </div>
         )}
       </div>
@@ -181,21 +178,70 @@ export default function ImageCropper({ imageFile, selectedShape, customPoints, c
       )}
 
       {originalImage && selectedShape && (!selectedShape.isCustom || (selectedShape.isCustom && customPoints && customPoints.length > 0)) && (
-        <button
-          onClick={handleCrop}
-          disabled={loading}
-          className="px-6 py-2 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-        >
-          Crop Image
-        </button>
+        <div className="flex gap-4">
+          {onBackToSelection && (
+            <button
+              onClick={onBackToSelection}
+              className="group relative px-8 py-4 bg-gradient-to-br from-gray-500 via-gray-600 to-gray-700 hover:from-gray-400 hover:via-gray-500 hover:to-gray-600 text-white font-bold rounded-2xl shadow-2xl shadow-gray-600/40 hover:shadow-gray-500/60 transition-all duration-300 transform hover:scale-110 hover:-translate-y-2 cursor-pointer flex items-center space-x-3"
+              style={{ transformStyle: 'preserve-3d' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'perspective(1000px) rotateX(-5deg) rotateY(-5deg) translateY(-8px) scale(1.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)';
+              }}
+            >
+              {/* 3D Border Effect */}
+              <div className="absolute inset-0 bg-gradient-to-br from-gray-400/50 to-gray-700/50 rounded-2xl blur-sm -z-10 group-hover:blur-md transition-all duration-300"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl"></div>
+              
+              <svg className="w-6 h-6 group-hover:scale-125 group-hover:-rotate-12 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span className="font-black text-lg tracking-wide">BACK</span>
+              
+              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </button>
+          )}
+          <button
+            onClick={handleCrop}
+            disabled={loading}
+            className="group relative px-8 py-4 bg-gradient-to-br from-pink-400 via-pink-500 to-pink-600 hover:from-pink-300 hover:via-pink-400 hover:to-pink-500 text-white font-bold rounded-2xl shadow-2xl shadow-pink-500/40 hover:shadow-pink-400/60 transition-all duration-300 transform hover:scale-110 hover:-translate-y-2 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none cursor-pointer flex items-center space-x-3"
+            style={{ transformStyle: 'preserve-3d' }}
+            onMouseEnter={(e) => {
+              if (!loading) {
+                e.currentTarget.style.transform = 'perspective(1000px) rotateX(-5deg) rotateY(5deg) translateY(-8px) scale(1.1)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!loading) {
+                e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)';
+              }
+            }}
+          >
+            {/* 3D Border Effect */}
+            <div className="absolute inset-0 bg-gradient-to-br from-pink-300/50 to-pink-600/50 rounded-2xl blur-sm -z-10 group-hover:blur-md transition-all duration-300"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl"></div>
+            
+            <div className="relative">
+              <svg className={`w-6 h-6 group-hover:scale-125 transition-all duration-300 ${loading ? 'animate-spin' : 'group-hover:rotate-12'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+              </svg>
+              <div className="absolute inset-0 bg-white/30 rounded-full blur-md group-hover:blur-lg transition-all duration-300"></div>
+            </div>
+            <span className="font-black text-lg tracking-wide">{loading ? 'CROPPING...' : 'CROP IMAGE'}</span>
+            
+            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          </button>
+        </div>
       )}
 
       {originalImage && !selectedShape && (
-        <p className="text-sm text-gray-500">Please select a shape template above</p>
+        <p className="text-sm text-gray-400">Please select a shape template above</p>
       )}
       
       {originalImage && selectedShape && selectedShape.isCustom && (!customPoints || customPoints.length === 0) && (
-        <p className="text-sm text-gray-500">Please draw your custom shape first</p>
+        <p className="text-sm text-gray-400">Please draw your custom shape first</p>
       )}
     </div>
   );

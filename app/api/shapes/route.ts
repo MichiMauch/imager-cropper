@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllCustomShapes, saveCustomShape } from '../../lib/turso';
+import { getAllCustomShapes, saveCustomShape, deleteAllCustomShapes } from '../../lib/turso';
 
 // GET - Fetch all custom shapes
 export async function GET() {
@@ -65,6 +65,23 @@ export async function POST(request: NextRequest) {
     console.error('API Error - POST shape:', error);
     return NextResponse.json(
       { error: 'Failed to save shape' },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE - Delete all custom shapes (use with caution!)
+export async function DELETE() {
+  try {
+    const deleted = await deleteAllCustomShapes();
+    return NextResponse.json({ 
+      success: true, 
+      message: `Deleted ${deleted} shapes from database` 
+    });
+  } catch (error) {
+    console.error('API Error - DELETE shapes:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete shapes' },
       { status: 500 }
     );
   }

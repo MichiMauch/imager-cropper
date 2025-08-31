@@ -17,6 +17,10 @@ export const metadata: Metadata = {
   description: "Crop images with custom shape templates and export as transparent PNG",
 };
 
+import { AppProvider } from './contexts/AppContext';
+import { NavigationProvider } from './contexts/NavigationContext';
+import TransitionLayout from './components/TransitionLayout';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,7 +31,13 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <AppProvider>
+          <NavigationProvider>
+            <TransitionLayout>
+              {children}
+            </TransitionLayout>
+          </NavigationProvider>
+        </AppProvider>
       </body>
     </html>
   );

@@ -42,15 +42,7 @@ export function cropImageWithShape(
   // Clear canvas with transparent background
   ctx.clearRect(0, 0, canvasWidth, canvasHeight);
   
-  // Save the context state
-  ctx.save();
-  
-  // Draw the shape path
-  shape.drawPath(ctx, canvasWidth, canvasHeight);
-  
-  // Clip to the shape
-  ctx.clip();
-  
+  // First, draw the full image
   if (useOriginalSize) {
     // For custom shapes with original size: draw image at 1:1 scale
     ctx.drawImage(image, 0, 0, image.width, image.height);
@@ -79,7 +71,14 @@ export function cropImageWithShape(
     ctx.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
   }
   
-  // Restore the context state
+  // Now cut out the shape area (make it transparent)
+  ctx.save();
+  ctx.globalCompositeOperation = 'destination-out';
+  
+  // Draw the shape path to cut it out
+  shape.drawPath(ctx, canvasWidth, canvasHeight);
+  ctx.fill();
+  
   ctx.restore();
   
   return canvas;

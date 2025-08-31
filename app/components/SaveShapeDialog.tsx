@@ -69,17 +69,17 @@ export default function SaveShapeDialog({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-xl shadow-2xl shadow-black/50 max-w-md w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-white">
               Save Custom Shape
             </h3>
             <button
               onClick={handleClose}
               disabled={saving}
-              className="text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed"
+              className="text-gray-400 hover:text-white disabled:cursor-not-allowed cursor-pointer transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -90,7 +90,7 @@ export default function SaveShapeDialog({
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Shape Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Shape Name *
               </label>
               <input
@@ -98,7 +98,7 @@ export default function SaveShapeDialog({
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
                 placeholder="e.g., Custom Arrow, My Logo Shape"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 text-white placeholder-gray-400 backdrop-blur-sm"
                 required
                 disabled={saving}
               />
@@ -108,7 +108,7 @@ export default function SaveShapeDialog({
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Description (Optional)
               </label>
               <textarea
@@ -116,7 +116,7 @@ export default function SaveShapeDialog({
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
                 placeholder="Brief description of the shape's purpose..."
                 rows={2}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-gray-800/50 border border-gray-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 text-white placeholder-gray-400 backdrop-blur-sm"
                 disabled={saving}
               />
             </div>
@@ -129,20 +129,20 @@ export default function SaveShapeDialog({
                 checked={formData.is_standard}
                 onChange={(e) => setFormData({...formData, is_standard: e.target.checked})}
                 disabled={saving}
-                className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                className="w-4 h-4 text-indigo-500 bg-gray-800 border-gray-600 rounded focus:ring-indigo-500 focus:ring-2"
               />
-              <label htmlFor="is_standard" className="text-sm font-medium text-gray-700">
+              <label htmlFor="is_standard" className="text-sm font-medium text-gray-300">
                 Als Standard-Shape markieren ⭐
               </label>
             </div>
-            <p className="text-xs text-gray-500 -mt-2">
+            <p className="text-xs text-gray-400 -mt-2">
               Standard-Shapes werden oben in der Liste angezeigt und sind schnell verfügbar.
             </p>
 
             {/* Shape Info */}
-            <div className="bg-gray-50 p-3 rounded-md">
-              <h4 className="text-sm font-medium text-gray-700 mb-1">Shape Details</h4>
-              <div className="text-xs text-gray-600 space-y-1">
+            <div className="bg-gray-800/30 p-3 rounded-lg border border-gray-700/30">
+              <h4 className="text-sm font-medium text-gray-300 mb-1">Shape Details</h4>
+              <div className="text-xs text-gray-400 space-y-1">
                 <div>Points: {points.length}</div>
                 <div>Canvas: {canvasSize?.width}x{canvasSize?.height}px</div>
               </div>
@@ -154,14 +154,14 @@ export default function SaveShapeDialog({
                 type="button"
                 onClick={handleClose}
                 disabled={saving}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 disabled:cursor-not-allowed disabled:bg-gray-100"
+                className="flex-1 px-4 py-2 bg-gray-800/30 border border-gray-600/50 text-gray-300 rounded-lg hover:bg-gray-700/50 disabled:cursor-not-allowed disabled:bg-gray-800/50 cursor-pointer backdrop-blur-sm transition-all duration-200"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={saving || !formData.name.trim()}
-                className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:cursor-not-allowed disabled:bg-gray-400"
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-lg shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 border border-indigo-400/20 backdrop-blur-sm transition-all duration-200 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer"
               >
                 {saving ? 'Saving...' : 'Save Shape'}
               </button>
